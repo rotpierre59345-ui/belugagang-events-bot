@@ -58,10 +58,7 @@ class BeluGANGBot(commands.Bot):
     async def on_ready(self):
         log.info(f"Logged in as {self.user} (ID: {self.user.id})")
         await self.change_presence(
-            activity=discord.Activity(
-                type=discord.ActivityType.watching,
-                name="BeluGANG Events ⚡",
-            )
+            activity=discord.Game(name="BELUGANG")
         )
 
     async def on_command_error(self, ctx, error):

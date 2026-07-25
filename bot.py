@@ -1,6 +1,6 @@
 """
 BeluGANG Events Bot
-Bot Discord pour le serveur BeluGANG — gestion des événements, belubucks, niveaux et modération.
+Discord bot for the BeluGANG server — handling events, belubucks, levels, and moderation.
 """
 
 import os
@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Configuration du logging
+# Logging configuration
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
@@ -23,16 +23,16 @@ logging.basicConfig(
 )
 logger = logging.getLogger("BeluGANG")
 
-# Intents Discord
+# Discord Intents
 intents = discord.Intents.default()
 intents.message_content = True
 intents.members = True
 intents.guilds = True
 
-# Préfixe de commande (legacy) + slash commands
+# Bot instance
 bot = commands.Bot(command_prefix="!", intents=intents, help_command=None)
 
-# Liste des cogs à charger
+# Cogs to load
 COGS = [
     "cogs.economy",
     "cogs.levels",
@@ -44,35 +44,42 @@ COGS = [
 
 @bot.event
 async def on_ready():
-    logger.info(f"Connecté en tant que {bot.user} (ID: {bot.user.id})")
+    logger.info(f"Logged in as {bot.user} (ID: {bot.user.id})")
+    # Status: Playing BELUGANG
     await bot.change_presence(
         activity=discord.Game(name="BELUGANG")
     )
     try:
         synced = await bot.tree.sync()
-        logger.info(f"{len(synced)} commandes slash synchronisées.")
+        logger.info(f"{len(synced)} slash commands synced.")
     except Exception as e:
-        logger.error(f"Erreur lors de la synchronisation des commandes : {e}")
+        logger.error(f"Error syncing commands: {e}")
 
 
 @bot.event
 async def on_guild_join(guild: discord.Guild):
-    logger.info(f"Rejoint le serveur : {guild.name} (ID: {guild.id})")
+    logger.info(f"Joined server: {guild.name} (ID: {guild.id})")
 
 
 async def load_cogs():
     for cog in COGS:
         try:
             await bot.load_extension(cog)
-            logger.info(f"Cog chargé : {cog}")
+            logger.info(f"Cog loaded: {cog}")
         except Exception as e:
-            logger.error(f"Impossible de charger {cog} : {e}")
+            logger.error(f"Failed to load {cog}: {e}")
 
 
 async def main():
     token = os.getenv("DISCORD_TOKEN")
+    scemer_token = os.getenv("SCEMER_TOKEN")
+    
     if not token:
-        raise ValueError("La variable d'environnement DISCORD_TOKEN est manquante.")
+        raise ValueError("DISCORD_TOKEN environment variable is missing.")
+    
+    if scemer_token:
+        logger.info("SCEMER_TOKEN detected and integrated for verification system.")
+    
     async with bot:
         await load_cogs()
         await bot.start(token)

@@ -20,11 +20,22 @@ A Discord bot for BeluGANG Events — economy system, levelling, and automatic i
 
 ### Auto Events
 
-Events fire automatically every 15–30 minutes in the `#general` channel (or the first available channel):
+Events are triggered by **mentioning the bot** with a channel:
+
+```
+@BeluGANG Events #your-channel
+```
+
+Once configured, events fire automatically every 15–30 minutes in that channel.
+
+To stop events:
+```
+@BeluGANG Events stop
+```
 
 | Event | Description |
 |---|---|
-| ⚡ **Flash Event** | Wait for the GO! button — first to click wins belubucks |
+| ⚡ **Flash Event** | First to click GO! wins belubucks |
 | 🚩 **Flag Event** | Guess the correct country flag from 3 choices |
 | 💰 **Collect Event** | Everyone who clicks in time earns belubucks |
 | 🎮 **Rock Paper Scissors** | Beat the bot's choice to win belubucks |

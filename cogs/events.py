@@ -1,14 +1,21 @@
 """
 Auto-Events for BeluGANG Events bot.
 
-Four event types cycle randomly in the configured events channel:
-  1. Flash Event  — First to click GO! wins
-  2. Flag Event   — Guess the correct country flag
-  3. Collect Event — Collect belubucks before they disappear
-  4. Rock Paper Scissors — Beat the bot's choice
+How to start events:
+  Mention the bot and include a channel mention in the same message.
+  Example: @BeluGANG Events #general
 
-The events channel is auto-detected as the first channel named "general",
-"events", or "bot-events" in the guild. Override via EVENT_CHANNEL_NAME env var.
+  Once configured, events will fire automatically in that channel
+  every EVENT_INTERVAL_MIN–EVENT_INTERVAL_MAX minutes.
+
+  To stop events, mention the bot with "stop":
+  Example: @BeluGANG Events stop
+
+Four event types cycle randomly:
+  1. Flash Event        — First to click GO! wins
+  2. Flag Event         — Guess the correct country flag
+  3. Collect Event      — Collect belubucks before they disappear
+  4. Rock Paper Scissors — Beat the bot's choice
 """
 
 import asyncio
@@ -20,59 +27,38 @@ import os
 from utils import update_balance, add_xp
 
 # ── Config ──────────────────────────────────────────────────────────────────
-EVENT_CHANNEL_NAME = os.environ.get("EVENT_CHANNEL_NAME", "general")
 EVENT_INTERVAL_MIN = int(os.environ.get("EVENT_INTERVAL_MIN", "15"))   # minutes
 EVENT_INTERVAL_MAX = int(os.environ.get("EVENT_INTERVAL_MAX", "30"))   # minutes
 
-FLASH_REWARD = 200
-FLAG_REWARD = 150
-FLAG_BONUS = 50
+FLASH_REWARD   = 200
+FLAG_REWARD    = 150
+FLAG_BONUS     = 50
 COLLECT_REWARD = 100
-RPS_REWARD = 120
+RPS_REWARD     = 120
 
-BRAND_COLOR = discord.Color.from_str("#5865F2")
+BRAND_COLOR   = discord.Color.from_str("#5865F2")
 SUCCESS_COLOR = discord.Color.from_str("#57F287")
-ERROR_COLOR = discord.Color.from_str("#ED4245")
-PINK_COLOR = discord.Color.from_str("#EB459E")
+ERROR_COLOR   = discord.Color.from_str("#ED4245")
+PINK_COLOR    = discord.Color.from_str("#EB459E")
 
 # ── Country flags data ───────────────────────────────────────────────────────
 FLAGS = [
-    ("Nepal", "🇳🇵"),
-    ("Japan", "🇯🇵"),
-    ("France", "🇫🇷"),
-    ("Brazil", "🇧🇷"),
-    ("Canada", "🇨🇦"),
-    ("Germany", "🇩🇪"),
-    ("Australia", "🇦🇺"),
-    ("Mexico", "🇲🇽"),
-    ("India", "🇮🇳"),
-    ("Italy", "🇮🇹"),
-    ("Spain", "🇪🇸"),
-    ("South Korea", "🇰🇷"),
-    ("United Kingdom", "🇬🇧"),
-    ("United States", "🇺🇸"),
-    ("Argentina", "🇦🇷"),
-    ("Portugal", "🇵🇹"),
-    ("Netherlands", "🇳🇱"),
-    ("Sweden", "🇸🇪"),
-    ("Norway", "🇳🇴"),
-    ("Switzerland", "🇨🇭"),
-    ("Turkey", "🇹🇷"),
-    ("Saudi Arabia", "🇸🇦"),
-    ("China", "🇨🇳"),
-    ("Russia", "🇷🇺"),
-    ("South Africa", "🇿🇦"),
-    ("Egypt", "🇪🇬"),
-    ("Nigeria", "🇳🇬"),
-    ("Morocco", "🇲🇦"),
-    ("Poland", "🇵🇱"),
-    ("Ukraine", "🇺🇦"),
+    ("Nepal",         "🇳🇵"), ("Japan",        "🇯🇵"), ("France",       "🇫🇷"),
+    ("Brazil",        "🇧🇷"), ("Canada",       "🇨🇦"), ("Germany",      "🇩🇪"),
+    ("Australia",     "🇦🇺"), ("Mexico",       "🇲🇽"), ("India",        "🇮🇳"),
+    ("Italy",         "🇮🇹"), ("Spain",        "🇪🇸"), ("South Korea",  "🇰🇷"),
+    ("United Kingdom","🇬🇧"), ("United States","🇺🇸"), ("Argentina",    "🇦🇷"),
+    ("Portugal",      "🇵🇹"), ("Netherlands",  "🇳🇱"), ("Sweden",       "🇸🇪"),
+    ("Norway",        "🇳🇴"), ("Switzerland",  "🇨🇭"), ("Turkey",       "🇹🇷"),
+    ("Saudi Arabia",  "🇸🇦"), ("China",        "🇨🇳"), ("Russia",       "🇷🇺"),
+    ("South Africa",  "🇿🇦"), ("Egypt",        "🇪🇬"), ("Nigeria",      "🇳🇬"),
+    ("Morocco",       "🇲🇦"), ("Poland",       "🇵🇱"), ("Ukraine",      "🇺🇦"),
 ]
 
 RPS_CHOICES = ["Rock 🪨", "Paper 📄", "Scissors ✂️"]
 RPS_WINS = {
-    "Rock 🪨": "Scissors ✂️",
-    "Paper 📄": "Rock 🪨",
+    "Rock 🪨":     "Scissors ✂️",
+    "Paper 📄":    "Rock 🪨",
     "Scissors ✂️": "Paper 📄",
 }
 
@@ -86,7 +72,7 @@ class FlashView(discord.ui.View):
         super().__init__(timeout=60)
         self.reward = reward
         self.winner = None
-        self.active = False  # becomes True after delay
+        self.active = False
         self._go_button = None
         self._build()
 
@@ -117,7 +103,6 @@ class FlashView(discord.ui.View):
         for item in self.children:
             item.disabled = True
 
-        # Give reward + XP
         await update_balance(interaction.user.id, interaction.guild.id, self.reward)
         _, new_level, leveled_up = await add_xp(interaction.user.id, interaction.guild.id, 30)
 
@@ -142,7 +127,6 @@ class FlashView(discord.ui.View):
             )
 
     async def activate(self, message: discord.Message):
-        """Called after a random delay to activate the GO button."""
         await asyncio.sleep(random.uniform(3, 12))
         self.active = True
         self._go_button.label = "GO! ⚡"
@@ -162,7 +146,7 @@ class FlagView(discord.ui.View):
 
     def __init__(self, correct: tuple, options: list, reward: int, bonus: int):
         super().__init__(timeout=30)
-        self.correct = correct        # (country, emoji)
+        self.correct = correct
         self.reward = reward
         self.bonus = bonus
         self.winners: list[discord.Member] = []
@@ -184,7 +168,6 @@ class FlagView(discord.ui.View):
             if interaction.user in self.winners or interaction.user in self.losers:
                 await interaction.response.send_message("You already answered!", ephemeral=True)
                 return
-
             if country == self.correct[0]:
                 self.winners.append(interaction.user)
                 await update_balance(interaction.user.id, interaction.guild.id, self.reward + self.bonus)
@@ -256,11 +239,11 @@ class RPSView(discord.ui.View):
         self.reward = reward
         self.results: dict[str, list[str]] = {"win": [], "lose": [], "tie": []}
 
-    @discord.ui.button(label="Rock 🪨", style=discord.ButtonStyle.primary, custom_id="rps_rock")
+    @discord.ui.button(label="Rock 🪨",     style=discord.ButtonStyle.primary, custom_id="rps_rock")
     async def rock(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self._handle(interaction, "Rock 🪨")
 
-    @discord.ui.button(label="Paper 📄", style=discord.ButtonStyle.primary, custom_id="rps_paper")
+    @discord.ui.button(label="Paper 📄",    style=discord.ButtonStyle.primary, custom_id="rps_paper")
     async def paper(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self._handle(interaction, "Paper 📄")
 
@@ -269,7 +252,6 @@ class RPSView(discord.ui.View):
         await self._handle(interaction, "Scissors ✂️")
 
     async def _handle(self, interaction: discord.Interaction, choice: str):
-        # Check if user already played
         all_players = self.results["win"] + self.results["lose"] + self.results["tie"]
         if interaction.user.mention in all_players:
             await interaction.response.send_message("You already played!", ephemeral=True)
@@ -309,52 +291,133 @@ class Events(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self._event_running = False
+        # guild_id -> TextChannel  (set via mention)
+        self._event_channels: dict[int, discord.TextChannel] = {}
+        # guild_id -> next event timestamp
+        self._next_event_at: dict[int, float] = {}
         self.auto_event_loop.start()
 
     def cog_unload(self):
         self.auto_event_loop.cancel()
 
-    def _get_event_channel(self, guild: discord.Guild) -> discord.TextChannel | None:
-        """Find the best channel to send events to."""
-        preferred_names = [EVENT_CHANNEL_NAME, "events", "bot-events", "general", "chat"]
-        for name in preferred_names:
-            ch = discord.utils.get(guild.text_channels, name=name)
-            if ch and ch.permissions_for(guild.me).send_messages:
-                return ch
-        # Fallback: first writable text channel
-        for ch in guild.text_channels:
-            if ch.permissions_for(guild.me).send_messages:
-                return ch
-        return None
+    # ── Mention listener ─────────────────────────────────────────────────────
+
+    @commands.Cog.listener()
+    async def on_message(self, message: discord.Message):
+        """
+        Listen for @bot #channel mentions to configure the events channel.
+        Usage:  @BeluGANG Events #general
+        Stop:   @BeluGANG Events stop
+        """
+        if message.author.bot:
+            return
+        if not message.guild:
+            return
+        if self.bot.user not in message.mentions:
+            return
+
+        content = message.content.lower()
+
+        # Stop command
+        if "stop" in content:
+            if message.guild.id in self._event_channels:
+                del self._event_channels[message.guild.id]
+                if message.guild.id in self._next_event_at:
+                    del self._next_event_at[message.guild.id]
+                embed = discord.Embed(
+                    title="BeluGANG Events",
+                    description="⛔ Auto-events have been **stopped** for this server.",
+                    color=ERROR_COLOR,
+                )
+                embed.set_footer(text="BeluGANG Events • Mention me with a channel to restart.")
+                await message.channel.send(embed=embed)
+            else:
+                await message.channel.send(
+                    embed=discord.Embed(
+                        title="BeluGANG Events",
+                        description="ℹ️ Auto-events are not currently running.",
+                        color=BRAND_COLOR,
+                    )
+                )
+            return
+
+        # Channel mention — set the events channel
+        if message.channel_mentions:
+            target_channel = message.channel_mentions[0]
+
+            # Check bot can send there
+            if not target_channel.permissions_for(message.guild.me).send_messages:
+                embed = discord.Embed(
+                    title="BeluGANG Events",
+                    description=f"❌ I don't have permission to send messages in {target_channel.mention}.",
+                    color=ERROR_COLOR,
+                )
+                await message.channel.send(embed=embed)
+                return
+
+            self._event_channels[message.guild.id] = target_channel
+            interval = random.randint(EVENT_INTERVAL_MIN, EVENT_INTERVAL_MAX)
+            self._next_event_at[message.guild.id] = time.time() + interval * 60
+
+            embed = discord.Embed(
+                title="BeluGANG Events",
+                description=(
+                    f"✅ Auto-events are now **enabled** in {target_channel.mention}!\n\n"
+                    f"Events will fire every **{EVENT_INTERVAL_MIN}–{EVENT_INTERVAL_MAX} minutes** automatically.\n"
+                    f"First event in approximately **{interval} minutes**.\n\n"
+                    f"To stop events, mention me with `stop`."
+                ),
+                color=SUCCESS_COLOR,
+            )
+            embed.set_footer(text="BeluGANG Events")
+            await message.channel.send(embed=embed)
+            return
+
+        # Generic mention — show usage
+        embed = discord.Embed(
+            title="BeluGANG Events",
+            description=(
+                "👋 **How to start auto-events:**\n\n"
+                f"Mention me and include a channel:\n"
+                f"> {self.bot.user.mention} #your-channel\n\n"
+                "To stop events:\n"
+                f"> {self.bot.user.mention} stop\n\n"
+                "Use `/info` for the full command list."
+            ),
+            color=BRAND_COLOR,
+        )
+        embed.set_footer(text="BeluGANG Events")
+        await message.channel.send(embed=embed)
+
+    # ── Auto event loop ──────────────────────────────────────────────────────
 
     @tasks.loop(minutes=1)
     async def auto_event_loop(self):
-        """Fires a random event every EVENT_INTERVAL_MIN–EVENT_INTERVAL_MAX minutes."""
         if self._event_running:
             return
-        # Random chance each minute: fire if random minute matches interval
-        interval = random.randint(EVENT_INTERVAL_MIN, EVENT_INTERVAL_MAX)
-        if not hasattr(self, "_next_event_at"):
-            self._next_event_at = time.time() + interval * 60
-        if time.time() < self._next_event_at:
-            return
 
-        self._event_running = True
-        try:
-            for guild in self.bot.guilds:
-                channel = self._get_event_channel(guild)
-                if channel:
-                    await self._run_random_event(channel)
-        finally:
-            self._event_running = False
-            interval = random.randint(EVENT_INTERVAL_MIN, EVENT_INTERVAL_MAX)
-            self._next_event_at = time.time() + interval * 60
+        now = time.time()
+        for guild_id, channel in list(self._event_channels.items()):
+            next_at = self._next_event_at.get(guild_id, 0)
+            if now < next_at:
+                continue
+
+            self._event_running = True
+            try:
+                await self._run_random_event(channel)
+            except Exception as e:
+                import logging
+                logging.getLogger("belugagang").error(f"Event error in guild {guild_id}: {e}")
+            finally:
+                self._event_running = False
+                interval = random.randint(EVENT_INTERVAL_MIN, EVENT_INTERVAL_MAX)
+                self._next_event_at[guild_id] = time.time() + interval * 60
 
     @auto_event_loop.before_loop
     async def before_loop(self):
         await self.bot.wait_until_ready()
-        # Schedule first event 2-5 minutes after startup
-        self._next_event_at = time.time() + random.randint(2, 5) * 60
+
+    # ── Event dispatcher ─────────────────────────────────────────────────────
 
     async def _run_random_event(self, channel: discord.TextChannel):
         event_type = random.choice(["flash", "flag", "collect", "rps"])
@@ -383,10 +446,7 @@ class Events(commands.Cog):
         embed.set_footer(text="BeluGANG Events")
         message = await channel.send(embed=embed, view=view)
 
-        # Activate button after random delay
         asyncio.create_task(view.activate(message))
-
-        # Wait for view to finish (winner or timeout)
         await view.wait()
 
         if view.winner is None:
@@ -404,7 +464,6 @@ class Events(commands.Cog):
 
     async def _run_flag_event(self, channel: discord.TextChannel):
         correct = random.choice(FLAGS)
-        # Pick 2 wrong options
         wrong_pool = [f for f in FLAGS if f[0] != correct[0]]
         wrong = random.sample(wrong_pool, 2)
         options = [correct] + wrong
@@ -425,9 +484,8 @@ class Events(commands.Cog):
 
         await view.wait()
 
-        # Update message to show results
         winners_count = len(view.winners)
-        losers_count = len(view.losers)
+        losers_count  = len(view.losers)
         if winners_count > 0:
             winner_mentions = ", ".join(m.mention for m in view.winners[:5])
             extra = f" and {winners_count - 5} more" if winners_count > 5 else ""
@@ -515,9 +573,9 @@ class Events(commands.Cog):
 
         await view.wait()
 
-        wins = len(view.results["win"])
+        wins   = len(view.results["win"])
         losses = len(view.results["lose"])
-        ties = len(view.results["tie"])
+        ties   = len(view.results["tie"])
 
         result_text = (
             f"**Shoot! The bot chose {bot_choice}!**\n\n"

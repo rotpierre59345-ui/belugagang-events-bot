@@ -1,5 +1,5 @@
 """
-Cog Événements — Mini-jeux BeluGANG : Flash Event, HighLow, Rock Paper Scissors,
+Events Cog — BeluGANG Mini-games: Flash Event, HighLow, Rock Paper Scissors,
 Flag Guessing, Belubuck Drop.
 """
 
@@ -15,38 +15,38 @@ from utils.database import add_belubucks, init_db
 
 logger = logging.getLogger("BeluGANG.Events")
 
-# Récompenses par événement
+# Rewards per event
 FLASH_REWARD = random.randint(50, 150)
 HIGHLOW_REWARD = 100
 RPS_REWARD = 75
 FLAG_REWARD = 80
 DROP_REWARD = random.randint(30, 120)
 
-# Drapeaux pour le jeu de devinette
+# Flags for guessing game
 FLAGS = {
-    "🇳🇵": "Népal",
-    "🇧🇭": "Bahreïn",
-    "🇨🇭": "Suisse",
-    "🇻🇦": "Vatican",
-    "🇬🇧": "Royaume-Uni",
-    "🇯🇵": "Japon",
-    "🇧🇷": "Brésil",
-    "🇰🇷": "Corée du Sud",
-    "🇮🇳": "Inde",
+    "🇳🇵": "Nepal",
+    "🇧🇭": "Bahrain",
+    "🇨🇭": "Switzerland",
+    "🇻🇦": "Vatican City",
+    "🇬🇧": "United Kingdom",
+    "🇯🇵": "Japan",
+    "🇧🇷": "Brazil",
+    "🇰🇷": "South Korea",
+    "🇮🇳": "India",
     "🇫🇷": "France",
-    "🇩🇪": "Allemagne",
-    "🇺🇸": "États-Unis",
+    "🇩🇪": "Germany",
+    "🇺🇸": "United States",
     "🇨🇦": "Canada",
-    "🇦🇺": "Australie",
-    "🇲🇽": "Mexique",
+    "🇦🇺": "Australia",
+    "🇲🇽": "Mexico",
 }
 
 
-# ── Vues interactives ──────────────────────────────────────────────────────────
+# ── Interactive Views ──────────────────────────────────────────────────────────
 
 
 class FlashView(discord.ui.View):
-    """Bouton GO! pour le Flash Event — premier cliqueur gagne."""
+    """GO! button for Flash Event — first clicker wins."""
 
     def __init__(self, reward: int):
         super().__init__(timeout=15)
@@ -57,18 +57,18 @@ class FlashView(discord.ui.View):
     async def go(self, interaction: discord.Interaction, button: discord.ui.Button):
         if self.winner:
             await interaction.response.send_message(
-                f"❌ Trop tard ! **{self.winner.display_name}** a déjà cliqué.", ephemeral=True
+                f"❌ Too late! **{self.winner.display_name}** already clicked.", ephemeral=True
             )
             return
         self.winner = interaction.user
         new_balance = await add_belubucks(interaction.user.id, interaction.guild_id, self.reward)
         button.disabled = True
-        button.label = f"✅ Gagné par {interaction.user.display_name}"
+        button.label = f"✅ Won by {interaction.user.display_name}"
         await interaction.response.edit_message(
             content=(
-                f"⚡ **Flash Event terminé !**\n"
-                f"🏆 **{interaction.user.display_name}** a cliqué en premier et remporte "
-                f"**{self.reward} belubucks** ! (Solde : {new_balance:,} 🪙)"
+                f"⚡ **Flash Event Finished!**\n"
+                f"🏆 **{interaction.user.display_name}** clicked first and wins "
+                f"**{self.reward} belubucks**! (Balance: {new_balance:,} 🪙)"
             ),
             view=self,
         )
@@ -76,30 +76,30 @@ class FlashView(discord.ui.View):
 
 
 class BelubuckDropView(discord.ui.View):
-    """Bouton pour collecter des belubucks avant qu'ils disparaissent."""
+    """Button to collect belubucks before they disappear."""
 
     def __init__(self, reward: int):
         super().__init__(timeout=20)
         self.reward = reward
         self.clickers: set[int] = set()
 
-    @discord.ui.button(label="🪙 Collecter !", style=discord.ButtonStyle.primary)
+    @discord.ui.button(label="🪙 Collect!", style=discord.ButtonStyle.primary)
     async def collect(self, interaction: discord.Interaction, button: discord.ui.Button):
         if interaction.user.id in self.clickers:
             await interaction.response.send_message(
-                "❌ Tu as déjà collecté ces belubucks !", ephemeral=True
+                "❌ You already collected these belubucks!", ephemeral=True
             )
             return
         self.clickers.add(interaction.user.id)
         new_balance = await add_belubucks(interaction.user.id, interaction.guild_id, self.reward)
         await interaction.response.send_message(
-            f"✅ Tu as collecté **{self.reward} belubucks** ! Solde : **{new_balance:,}** 🪙",
+            f"✅ You collected **{self.reward} belubucks**! Balance: **{new_balance:,}** 🪙",
             ephemeral=True,
         )
 
 
 class HighLowView(discord.ui.View):
-    """Jeu HighLow — deviner si le nombre caché est plus haut, plus bas ou égal."""
+    """HighLow game — guess if the hidden number is higher, lower, or equal."""
 
     def __init__(self, shown: int, hidden: int, reward: int):
         super().__init__(timeout=30)
@@ -110,7 +110,7 @@ class HighLowView(discord.ui.View):
 
     async def _handle(self, interaction: discord.Interaction, guess: str):
         if interaction.user.id in self.played:
-            await interaction.response.send_message("❌ Tu as déjà joué !", ephemeral=True)
+            await interaction.response.send_message("❌ You already played!", ephemeral=True)
             return
         self.played.add(interaction.user.id)
 
@@ -125,31 +125,31 @@ class HighLowView(discord.ui.View):
                 interaction.user.id, interaction.guild_id, self.reward
             )
             await interaction.response.send_message(
-                f"✅ Bonne réponse ! Le nombre caché était **{self.hidden}**. "
-                f"Tu gagnes **{self.reward} belubucks** ! (Solde : {new_balance:,} 🪙)",
+                f"✅ Correct! The hidden number was **{self.hidden}**. "
+                f"You win **{self.reward} belubucks**! (Balance: {new_balance:,} 🪙)",
                 ephemeral=True,
             )
         else:
             await interaction.response.send_message(
-                f"❌ Mauvaise réponse. Le nombre caché était **{self.hidden}**.",
+                f"❌ Wrong. The hidden number was **{self.hidden}**.",
                 ephemeral=True,
             )
 
-    @discord.ui.button(label="⬆️ Plus haut", style=discord.ButtonStyle.primary)
+    @discord.ui.button(label="⬆️ Higher", style=discord.ButtonStyle.primary)
     async def higher(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self._handle(interaction, "higher")
 
-    @discord.ui.button(label="⬇️ Plus bas", style=discord.ButtonStyle.danger)
+    @discord.ui.button(label="⬇️ Lower", style=discord.ButtonStyle.danger)
     async def lower(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self._handle(interaction, "lower")
 
-    @discord.ui.button(label="🟰 Égal", style=discord.ButtonStyle.secondary)
+    @discord.ui.button(label="🟰 Equal", style=discord.ButtonStyle.secondary)
     async def equal(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self._handle(interaction, "equal")
 
 
 class RPSView(discord.ui.View):
-    """Rock Paper Scissors — jouer contre le bot."""
+    """Rock Paper Scissors — play against the bot."""
 
     CHOICES = {"🪨": "rock", "📄": "paper", "✂️": "scissors"}
     BEATS = {"rock": "scissors", "paper": "rock", "scissors": "paper"}
@@ -161,7 +161,7 @@ class RPSView(discord.ui.View):
 
     async def _handle(self, interaction: discord.Interaction, player_choice: str):
         if interaction.user.id in self.played:
-            await interaction.response.send_message("❌ Tu as déjà joué !", ephemeral=True)
+            await interaction.response.send_message("❌ You already played!", ephemeral=True)
             return
         self.played.add(interaction.user.id)
 
@@ -169,43 +169,43 @@ class RPSView(discord.ui.View):
         emoji_map = {v: k for k, v in self.CHOICES.items()}
 
         if player_choice == bot_choice:
-            result = "🤝 Égalité !"
+            result = "🤝 It's a Tie!"
             won = False
         elif self.BEATS[player_choice] == bot_choice:
-            result = "🏆 Tu gagnes !"
+            result = "🏆 You Win!"
             won = True
         else:
-            result = "💀 Tu perds !"
+            result = "💀 You Lose!"
             won = False
 
         if won:
             new_balance = await add_belubucks(
                 interaction.user.id, interaction.guild_id, self.reward
             )
-            detail = f"Tu gagnes **{self.reward} belubucks** ! (Solde : {new_balance:,} 🪙)"
+            detail = f"You win **{self.reward} belubucks**! (Balance: {new_balance:,} 🪙)"
         else:
-            detail = "Meilleure chance la prochaine fois !"
+            detail = "Better luck next time!"
 
         await interaction.response.send_message(
             f"{emoji_map[player_choice]} vs {emoji_map[bot_choice]}\n{result}\n{detail}",
             ephemeral=True,
         )
 
-    @discord.ui.button(label="🪨 Pierre", style=discord.ButtonStyle.secondary)
+    @discord.ui.button(label="🪨 Rock", style=discord.ButtonStyle.secondary)
     async def rock(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self._handle(interaction, "rock")
 
-    @discord.ui.button(label="📄 Papier", style=discord.ButtonStyle.secondary)
+    @discord.ui.button(label="📄 Paper", style=discord.ButtonStyle.secondary)
     async def paper(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self._handle(interaction, "paper")
 
-    @discord.ui.button(label="✂️ Ciseaux", style=discord.ButtonStyle.secondary)
+    @discord.ui.button(label="✂️ Scissors", style=discord.ButtonStyle.secondary)
     async def scissors(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self._handle(interaction, "scissors")
 
 
 class FlagView(discord.ui.View):
-    """Jeu de devinette de drapeaux — trouver le bon drapeau."""
+    """Flag guessing game — find the correct flag."""
 
     def __init__(self, correct_emoji: str, options: list[str], reward: int):
         super().__init__(timeout=30)
@@ -226,7 +226,7 @@ class FlagButton(discord.ui.Button):
 
     async def callback(self, interaction: discord.Interaction):
         if interaction.user.id in self.parent.played:
-            await interaction.response.send_message("❌ Tu as déjà joué !", ephemeral=True)
+            await interaction.response.send_message("❌ You already played!", ephemeral=True)
             return
         self.parent.played.add(interaction.user.id)
 
@@ -235,22 +235,22 @@ class FlagButton(discord.ui.Button):
                 interaction.user.id, interaction.guild_id, self.parent.reward
             )
             await interaction.response.send_message(
-                f"✅ Bonne réponse ! {self.parent.correct} "
-                f"Tu gagnes **{self.parent.reward} belubucks** ! (Solde : {new_balance:,} 🪙)",
+                f"✅ Correct! {self.parent.correct} "
+                f"You win **{self.parent.reward} belubucks**! (Balance: {new_balance:,} 🪙)",
                 ephemeral=True,
             )
         else:
             await interaction.response.send_message(
-                f"❌ Mauvaise réponse. Le bon drapeau était **{self.parent.correct}**.",
+                f"❌ Wrong. The correct flag was **{self.parent.correct}**.",
                 ephemeral=True,
             )
 
 
-# ── Cog principal ──────────────────────────────────────────────────────────────
+# ── Main Cog ──────────────────────────────────────────────────────────────
 
 
 class Events(commands.Cog):
-    """Mini-jeux et événements BeluGANG."""
+    """BeluGANG mini-games and events."""
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -264,11 +264,11 @@ class Events(commands.Cog):
     async def on_ready(self):
         await init_db()
 
-    # ── Tâche automatique ──────────────────────────────────────────────────────
+    # ── Auto Task ──────────────────────────────────────────────────────
 
     @tasks.loop(minutes=15)
     async def auto_events(self):
-        """Lance un événement aléatoire dans les canaux configurés toutes les 15 minutes."""
+        """Launches a random event in configured channels every 15 minutes."""
         for guild in self.bot.guilds:
             channel_id = self._event_channels.get(guild.id)
             if not channel_id:
@@ -280,27 +280,27 @@ class Events(commands.Cog):
             try:
                 await self._launch_event(channel, event_type)
             except Exception as e:
-                logger.error(f"Erreur événement auto ({event_type}) sur {guild.name}: {e}")
+                logger.error(f"Auto event error ({event_type}) on {guild.name}: {e}")
 
     @auto_events.before_loop
     async def before_auto_events(self):
         await self.bot.wait_until_ready()
 
-    # ── Lancement d'événement ──────────────────────────────────────────────────
+    # ── Event Launching ──────────────────────────────────────────────────
 
     async def _launch_event(self, channel: discord.TextChannel, event_type: str):
         if event_type == "flash":
             reward = random.randint(50, 150)
             view = FlashView(reward)
             embed = discord.Embed(
-                title="⚡ Flash Event !",
-                description=f"Clique sur **GO!** en premier pour gagner **{reward} belubucks** !",
+                title="⚡ Flash Event!",
+                description=f"Click **GO!** first to win **{reward} belubucks**!",
                 color=discord.Color.yellow(),
             )
             msg = await channel.send(embed=embed, view=view)
             await asyncio.sleep(15)
             if not view.winner:
-                embed.description = "⏰ Personne n'a cliqué à temps !"
+                embed.description = "⏰ No one clicked in time!"
                 embed.color = discord.Color.red()
                 await msg.edit(embed=embed, view=None)
 
@@ -308,13 +308,13 @@ class Events(commands.Cog):
             reward = random.randint(30, 120)
             view = BelubuckDropView(reward)
             embed = discord.Embed(
-                title="🪙 Belubuck Drop !",
-                description=f"Collecte les belubucks avant qu'ils disparaissent ! **{reward} belubucks** chacun !",
+                title="🪙 Belubuck Drop!",
+                description=f"Collect the belubucks before they disappear! **{reward} belubucks** each!",
                 color=discord.Color.gold(),
             )
             msg = await channel.send(embed=embed, view=view)
             await asyncio.sleep(20)
-            embed.description = f"⏰ L'événement est terminé ! **{len(view.clickers)}** personnes ont collecté."
+            embed.description = f"⏰ Event finished! **{len(view.clickers)}** people collected."
             embed.color = discord.Color.greyple()
             await msg.edit(embed=embed, view=None)
 
@@ -324,17 +324,17 @@ class Events(commands.Cog):
             reward = HIGHLOW_REWARD
             view = HighLowView(shown, hidden, reward)
             embed = discord.Embed(
-                title="🔢 HighLow Event !",
+                title="🔢 HighLow Event!",
                 description=(
-                    f"Le nombre affiché est **{shown}**.\n"
-                    f"Le nombre caché est-il **plus haut**, **plus bas** ou **égal** ?\n"
-                    f"Bonne réponse = **{reward} belubucks** !"
+                    f"The shown number is **{shown}**.\n"
+                    f"Is the hidden number **higher**, **lower**, or **equal**?\n"
+                    f"Correct answer = **{reward} belubucks**!"
                 ),
                 color=discord.Color.blue(),
             )
             msg = await channel.send(embed=embed, view=view)
             await asyncio.sleep(30)
-            embed.description += f"\n\n⏰ Terminé ! Le nombre caché était **{hidden}**."
+            embed.description += f"\n\n⏰ Finished! The hidden number was **{hidden}**."
             embed.color = discord.Color.greyple()
             await msg.edit(embed=embed, view=None)
 
@@ -342,8 +342,8 @@ class Events(commands.Cog):
             reward = RPS_REWARD
             view = RPSView(reward)
             embed = discord.Embed(
-                title="✂️ Rock Paper Scissors !",
-                description=f"Joue contre le bot ! Gagne **{reward} belubucks** si tu l'emportes !",
+                title="✂️ Rock Paper Scissors!",
+                description=f"Play against the bot! Win **{reward} belubucks** if you win!",
                 color=discord.Color.purple(),
             )
             msg = await channel.send(embed=embed, view=view)
@@ -359,10 +359,10 @@ class Events(commands.Cog):
             reward = FLAG_REWARD
             view = FlagView(correct_emoji, options, reward)
             embed = discord.Embed(
-                title="🌍 Flag Guessing Event !",
+                title="🌍 Flag Guessing Event!",
                 description=(
-                    f"Quel est le drapeau du **{correct_name}** ?\n"
-                    f"Bonne réponse = **{reward} belubucks** !"
+                    f"What is the flag of **{correct_name}**?\n"
+                    f"Correct answer = **{reward} belubucks**!"
                 ),
                 color=discord.Color.green(),
             )
@@ -371,41 +371,41 @@ class Events(commands.Cog):
             embed.color = discord.Color.greyple()
             await msg.edit(embed=embed, view=None)
 
-    # ── Commandes slash ────────────────────────────────────────────────────────
+    # ── Slash Commands ────────────────────────────────────────────────────────
 
-    @app_commands.command(name="flash", description="Lancer un Flash Event dans ce canal.")
+    @app_commands.command(name="flash", description="Launch a Flash Event in this channel.")
     @app_commands.default_permissions(manage_guild=True)
     async def flash(self, interaction: discord.Interaction):
-        await interaction.response.send_message("⚡ Flash Event lancé !", ephemeral=True)
+        await interaction.response.send_message("⚡ Flash Event launched!", ephemeral=True)
         await self._launch_event(interaction.channel, "flash")
 
-    @app_commands.command(name="drop", description="Lancer un Belubuck Drop dans ce canal.")
+    @app_commands.command(name="drop", description="Launch a Belubuck Drop in this channel.")
     @app_commands.default_permissions(manage_guild=True)
     async def drop(self, interaction: discord.Interaction):
-        await interaction.response.send_message("🪙 Belubuck Drop lancé !", ephemeral=True)
+        await interaction.response.send_message("🪙 Belubuck Drop launched!", ephemeral=True)
         await self._launch_event(interaction.channel, "drop")
 
-    @app_commands.command(name="highlow", description="Lancer un HighLow Event dans ce canal.")
+    @app_commands.command(name="highlow", description="Launch a HighLow Event in this channel.")
     @app_commands.default_permissions(manage_guild=True)
     async def highlow(self, interaction: discord.Interaction):
-        await interaction.response.send_message("🔢 HighLow Event lancé !", ephemeral=True)
+        await interaction.response.send_message("🔢 HighLow Event launched!", ephemeral=True)
         await self._launch_event(interaction.channel, "highlow")
 
-    @app_commands.command(name="rps", description="Lancer un Rock Paper Scissors Event.")
+    @app_commands.command(name="rps", description="Launch a Rock Paper Scissors Event.")
     @app_commands.default_permissions(manage_guild=True)
     async def rps(self, interaction: discord.Interaction):
-        await interaction.response.send_message("✂️ RPS Event lancé !", ephemeral=True)
+        await interaction.response.send_message("✂️ RPS Event launched!", ephemeral=True)
         await self._launch_event(interaction.channel, "rps")
 
-    @app_commands.command(name="flag", description="Lancer un Flag Guessing Event.")
+    @app_commands.command(name="flag", description="Launch a Flag Guessing Event.")
     @app_commands.default_permissions(manage_guild=True)
     async def flag(self, interaction: discord.Interaction):
-        await interaction.response.send_message("🌍 Flag Event lancé !", ephemeral=True)
+        await interaction.response.send_message("🌍 Flag Event launched!", ephemeral=True)
         await self._launch_event(interaction.channel, "flag")
 
     @app_commands.command(
         name="seteventchannel",
-        description="[Admin] Définir le canal pour les événements automatiques.",
+        description="[Admin] Set the channel for auto events.",
     )
     @app_commands.default_permissions(administrator=True)
     async def seteventchannel(
@@ -415,8 +415,8 @@ class Events(commands.Cog):
     ):
         self._event_channels[interaction.guild_id] = channel.id
         await interaction.response.send_message(
-            f"✅ Canal d'événements défini sur {channel.mention}. "
-            f"Les événements automatiques s'y dérouleront toutes les 15 minutes.",
+            f"✅ Event channel set to {channel.mention}. "
+            f"Auto events will happen every 15 minutes.",
             ephemeral=True,
         )
 

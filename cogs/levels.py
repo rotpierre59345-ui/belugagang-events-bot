@@ -1,5 +1,5 @@
 """
-Cog Niveaux — Système d'XP et de niveaux basé sur l'activité dans le chat.
+Levels Cog — XP and level system based on chat activity.
 """
 
 import discord
@@ -13,11 +13,11 @@ from utils.levels import xp_progress, xp_gain_for_message
 
 logger = logging.getLogger("BeluGANG.Levels")
 
-XP_COOLDOWN = 60  # secondes entre deux gains d'XP par message
+XP_COOLDOWN = 60  # seconds between two XP gains per message
 
 
 class Levels(commands.Cog):
-    """Système de niveaux et d'XP pour BeluGANG."""
+    """Level and XP system for BeluGANG."""
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
@@ -56,29 +56,29 @@ class Levels(commands.Cog):
             messages=data.get("messages", 0) + 1,
         )
 
-        # Notification de montée de niveau
+        # Level up notification
         if new_level > old_level:
             try:
                 embed = discord.Embed(
-                    title="🎉 Level Up !",
+                    title="🎉 Level Up!",
                     description=(
-                        f"Félicitations **{message.author.display_name}** ! "
-                        f"Tu es maintenant **Niveau {new_level}** ! 🚀"
+                        f"Congratulations **{message.author.display_name}**! "
+                        f"You are now **Level {new_level}**! 🚀"
                     ),
                     color=discord.Color.gold(),
                 )
                 embed.set_thumbnail(url=message.author.display_avatar.url)
                 await message.channel.send(embed=embed)
                 logger.info(
-                    f"{message.author} a atteint le niveau {new_level} sur {message.guild.name}"
+                    f"{message.author} reached level {new_level} on {message.guild.name}"
                 )
             except discord.Forbidden:
                 pass
 
     # ── /level ────────────────────────────────────────────────────────────────
 
-    @app_commands.command(name="level", description="Voir ton niveau ou celui d'un membre.")
-    @app_commands.describe(member="Membre dont tu veux voir le niveau (optionnel).")
+    @app_commands.command(name="level", description="View your level or a member's level.")
+    @app_commands.describe(member="Member whose level you want to see (optional).")
     async def level(
         self,
         interaction: discord.Interaction,
@@ -90,21 +90,21 @@ class Levels(commands.Cog):
         level, current_xp, needed_xp = xp_progress(xp)
         messages = data.get("messages", 0)
 
-        # Barre de progression
+        # Progress bar
         bar_length = 20
         filled = int(bar_length * current_xp / needed_xp) if needed_xp > 0 else 0
         bar = "█" * filled + "░" * (bar_length - filled)
 
         embed = discord.Embed(
-            title=f"📊 Niveau de {target.display_name}",
+            title=f"📊 {target.display_name}'s Level",
             color=discord.Color.blurple(),
         )
         embed.set_thumbnail(url=target.display_avatar.url)
-        embed.add_field(name="Niveau", value=f"**{level}**", inline=True)
-        embed.add_field(name="XP Total", value=f"**{xp:,}**", inline=True)
+        embed.add_field(name="Level", value=f"**{level}**", inline=True)
+        embed.add_field(name="Total XP", value=f"**{xp:,}**", inline=True)
         embed.add_field(name="Messages", value=f"**{messages:,}**", inline=True)
         embed.add_field(
-            name="Progression",
+            name="Progress",
             value=f"`{bar}` {current_xp}/{needed_xp} XP",
             inline=False,
         )
@@ -112,7 +112,7 @@ class Levels(commands.Cog):
 
     # ── /rank ─────────────────────────────────────────────────────────────────
 
-    @app_commands.command(name="rank", description="Voir ton rang dans le classement XP.")
+    @app_commands.command(name="rank", description="View your rank in the XP leaderboard.")
     async def rank(self, interaction: discord.Interaction):
         await interaction.response.defer()
         rows = await get_level_leaderboard(interaction.guild_id, limit=100)
@@ -125,38 +125,38 @@ class Levels(commands.Cog):
         xp = data.get("xp", 0)
 
         embed = discord.Embed(
-            title=f"🏅 Rang de {interaction.user.display_name}",
+            title=f"🏅 {interaction.user.display_name}'s Rank",
             color=discord.Color.blurple(),
         )
         embed.set_thumbnail(url=interaction.user.display_avatar.url)
-        embed.add_field(name="Rang", value=f"**#{user_rank or '?'}**", inline=True)
-        embed.add_field(name="Niveau", value=f"**{level}**", inline=True)
-        embed.add_field(name="XP Total", value=f"**{xp:,}**", inline=True)
+        embed.add_field(name="Rank", value=f"**#{user_rank or '?'}**", inline=True)
+        embed.add_field(name="Level", value=f"**{level}**", inline=True)
+        embed.add_field(name="Total XP", value=f"**{xp:,}**", inline=True)
         await interaction.followup.send(embed=embed)
 
     # ── /toplevel ─────────────────────────────────────────────────────────────
 
-    @app_commands.command(name="toplevel", description="Classement des niveaux du serveur.")
+    @app_commands.command(name="toplevel", description="Server level leaderboard.")
     async def toplevel(self, interaction: discord.Interaction):
         await interaction.response.defer()
         rows = await get_level_leaderboard(interaction.guild_id, limit=10)
 
         embed = discord.Embed(
-            title="📈 Classement des Niveaux",
+            title="📈 Level Leaderboard",
             color=discord.Color.blurple(),
         )
         medals = ["🥇", "🥈", "🥉"]
 
         if not rows:
-            embed.description = "Aucun utilisateur enregistré pour l'instant."
+            embed.description = "No users recorded yet."
         else:
             lines = []
             for i, row in enumerate(rows):
                 member = interaction.guild.get_member(row["user_id"])
-                name = member.display_name if member else f"Utilisateur #{row['user_id']}"
+                name = member.display_name if member else f"User #{row['user_id']}"
                 medal = medals[i] if i < 3 else f"`{i + 1}.`"
                 lines.append(
-                    f"{medal} **{name}** — Niv. **{row['level']}** ({row['xp']:,} XP)"
+                    f"{medal} **{name}** — Lvl **{row['level']}** ({row['xp']:,} XP)"
                 )
             embed.description = "\n".join(lines)
 

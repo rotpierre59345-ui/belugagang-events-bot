@@ -316,6 +316,12 @@ class Events(commands.Cog):
         if self.bot.user not in message.mentions:
             return
 
+        # Auto-delete the user's mention message
+        try:
+            await message.delete()
+        except Exception:
+            pass
+
         content = message.content.lower()
 
         # Stop command

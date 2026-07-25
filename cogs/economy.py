@@ -108,8 +108,8 @@ class Economy(commands.Cog):
 
     # ── /leaderboard ──────────────────────────────────────────────────────────
 
-    @app_commands.command(name="leaderboard", description="Display the belubucks leaderboard.")
-    async def leaderboard(self, interaction: discord.Interaction):
+    @app_commands.command(name="richlist", description="Display the belubucks leaderboard.")
+    async def richlist(self, interaction: discord.Interaction):
         await interaction.response.defer()
         rows = await get_leaderboard(interaction.guild_id, limit=10)
 

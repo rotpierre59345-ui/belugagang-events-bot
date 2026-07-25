@@ -66,8 +66,8 @@ class Moderation(commands.Cog):
 
     # ── Info Commands ───────────────────────────────────────────────
 
-    @app_commands.command(name="help", description="Show bot help information.")
-    async def help(self, interaction: discord.Interaction):
+    @app_commands.command(name="info", description="Get information about BeluGANG.")
+    async def info(self, interaction: discord.Interaction):
         embed = discord.Embed(
             title="🐾 BeluGANG Events Bot",
             description=(
@@ -77,21 +77,6 @@ class Moderation(commands.Cog):
                 "❓ DM @byterand with any questions or feedback!"
             ),
             color=discord.Color.blue(),
-        )
-        embed.add_field(
-            name="🎮 Economy Commands",
-            value="`/balance`, `/work`, `/shop`, `/buy`, `/leaderboard`",
-            inline=False,
-        )
-        embed.add_field(
-            name="📈 Level Commands",
-            value="`/level`, `/rank`, `/toplevel`",
-            inline=False,
-        )
-        embed.add_field(
-            name="🛡️ Data",
-            value="`/data request`, `/data delete`",
-            inline=False,
         )
         embed.set_footer(text="Playing BELUGANG")
         await interaction.response.send_message(embed=embed)

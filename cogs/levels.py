@@ -136,8 +136,8 @@ class Levels(commands.Cog):
 
     # ── /toplevel ─────────────────────────────────────────────────────────────
 
-    @app_commands.command(name="toplevel", description="Server level leaderboard.")
-    async def toplevel(self, interaction: discord.Interaction):
+    @app_commands.command(name="leaderboard", description="Server level leaderboard.")
+    async def leaderboard(self, interaction: discord.Interaction):
         await interaction.response.defer()
         rows = await get_level_leaderboard(interaction.guild_id, limit=10)
 

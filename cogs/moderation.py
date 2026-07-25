@@ -66,19 +66,34 @@ class Moderation(commands.Cog):
 
     # ── Commandes d'information ───────────────────────────────────────────────
 
-    @app_commands.command(name="info", description="Obtenir des informations sur BeluGANG.")
-    async def info(self, interaction: discord.Interaction):
+    @app_commands.command(name="help", description="Afficher les informations d'aide du bot.")
+    async def help(self, interaction: discord.Interaction):
         embed = discord.Embed(
-            title="🐾 À propos de BeluGANG",
+            title="🐾 BeluGANG Events Bot",
             description=(
-                "BeluGANG est la communauté officielle du créateur Beluga !\n"
-                "Ce bot gère les événements, l'économie des belubucks et les niveaux du serveur."
+                "👋 Hi, I'm an events bot for BeluGANG!\n"
+                "💸 Complete events to earn belubucks.\n"
+                "💬 Talk in chat to earn XP and level up.\n"
+                "❓ DM @byterand with any questions or feedback!"
             ),
             color=discord.Color.blue(),
         )
-        embed.add_field(name="Créateur", value="Beluga", inline=True)
-        embed.add_field(name="Membres", value="~1,000,000", inline=True)
-        embed.set_footer(text="Bot créé pour BeluGANG Events")
+        embed.add_field(
+            name="🎮 Commandes Économie",
+            value="`/balance`, `/work`, `/shop`, `/buy`, `/leaderboard`",
+            inline=False,
+        )
+        embed.add_field(
+            name="📈 Commandes Niveaux",
+            value="`/level`, `/rank`, `/toplevel`",
+            inline=False,
+        )
+        embed.add_field(
+            name="🛡️ Données",
+            value="`/data request`, `/data delete`",
+            inline=False,
+        )
+        embed.set_footer(text="Joué à BELUGANG")
         await interaction.response.send_message(embed=embed)
 
     # ── Commandes de données (RGPD) ───────────────────────────────────────────

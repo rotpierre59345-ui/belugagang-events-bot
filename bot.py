@@ -46,10 +46,7 @@ COGS = [
 async def on_ready():
     logger.info(f"Connecté en tant que {bot.user} (ID: {bot.user.id})")
     await bot.change_presence(
-        activity=discord.Activity(
-            type=discord.ActivityType.watching,
-            name="BeluGANG Events 🎉",
-        )
+        activity=discord.Game(name="BELUGANG")
     )
     try:
         synced = await bot.tree.sync()

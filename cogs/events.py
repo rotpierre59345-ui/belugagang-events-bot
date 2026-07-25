@@ -268,19 +268,33 @@ class Events(commands.Cog):
 
     @tasks.loop(minutes=15)
     async def auto_events(self):
-        """Launches a random event in configured channels every 15 minutes."""
+        """Launches a random event in 'eventsBelu€(&' channels every 15 minutes with a Nuke."""
         for guild in self.bot.guilds:
-            channel_id = self._event_channels.get(guild.id)
-            if not channel_id:
-                continue
-            channel = guild.get_channel(channel_id)
-            if not channel:
-                continue
-            event_type = random.choice(["flash", "drop", "highlow", "rps", "flag"])
-            try:
-                await self._launch_event(channel, event_type)
-            except Exception as e:
-                logger.error(f"Auto event error ({event_type}) on {guild.name}: {e}")
+            for channel in guild.text_channels:
+                if "eventsBelu€(&" in channel.name:
+                    try:
+                        # Nuke logic: Delete and recreate the channel
+                        position = channel.position
+                        category = channel.category
+                        overwrites = channel.overwrites
+                        name = channel.name
+                        
+                        await channel.delete(reason="BeluGANG Event Nuke")
+                        new_channel = await guild.create_text_channel(
+                            name=name,
+                            category=category,
+                            overwrites=overwrites,
+                            position=position,
+                            reason="BeluGANG Event Reset"
+                        )
+                        
+                        # Launch random event in the new channel
+                        event_type = random.choice(["flash", "drop", "highlow", "rps", "flag"])
+                        await self._launch_event(new_channel, event_type)
+                        logger.info(f"Nuked and launched {event_type} in {name} on {guild.name}")
+                        
+                    except Exception as e:
+                        logger.error(f"Failed to nuke/launch event in {channel.name} on {guild.name}: {e}")
 
     @auto_events.before_loop
     async def before_auto_events(self):

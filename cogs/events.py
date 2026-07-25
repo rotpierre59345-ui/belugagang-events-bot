@@ -27,8 +27,9 @@ import os
 from utils import update_balance, add_xp
 
 # ── Config ──────────────────────────────────────────────────────────────────
-EVENT_INTERVAL_MIN = int(os.environ.get("EVENT_INTERVAL_MIN", "15"))   # minutes
-EVENT_INTERVAL_MAX = int(os.environ.get("EVENT_INTERVAL_MAX", "30"))   # minutes
+# Video analysis shows events appearing very frequently (every 1-3 minutes on average)
+EVENT_INTERVAL_MIN = int(os.environ.get("EVENT_INTERVAL_MIN", "1"))   # minutes
+EVENT_INTERVAL_MAX = int(os.environ.get("EVENT_INTERVAL_MAX", "3"))   # minutes
 
 FLASH_REWARD   = 200
 FLAG_REWARD    = 150

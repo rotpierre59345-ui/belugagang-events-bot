@@ -26,7 +26,7 @@ Events are triggered by **mentioning the bot** with a channel:
 @BeluGANG Events #your-channel
 ```
 
-Once configured, events fire automatically every 15–30 minutes in that channel.
+Once configured, events fire automatically every **1–3 minutes** in that channel (as seen in the video).
 
 To stop events:
 ```
